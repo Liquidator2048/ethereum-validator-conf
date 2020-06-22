@@ -17,7 +17,7 @@ I motivi per cui non ho mai sostituito l'utilizzo degli unit di systemd con dock
 
 * installare docker! :)
 
-* copiare il file `etc/default/docker-services`
+* copiare il file `etc/default/docker-services` -> `/etc/default/docker-services`
 
 per ora non è necessario modificarlo.
 
@@ -75,16 +75,18 @@ systemctl start docker-prysm-validator.service
 
 ## 3. attivare il validator
 
-### importante: attende che il beacon sia sincronizzato prima di effettuare il deposito sullo smart contract
+* attende che il beacon node sia sincronizzato prima di effettuare il deposito sullo smart contract
 
-per verificare lo stato del beacon e del validator è possibile usare i seguenti comandi:
+per verificare lo stato del beacon node e del validator è possibile usare i seguenti comandi:
 
-beacon node:
+log beacon node:
+
 ```
 journalctl -fa -u docker-prysm-beacon.service
+```
 
+log validator:
 
-validator:
 ```
 journalctl -fa -u docker-prysm-validator.service
 ```
