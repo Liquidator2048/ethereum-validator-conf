@@ -73,6 +73,8 @@ docker run --rm -it \
    accounts create --keystore-path=/secrets --password="${KEYSTORE_PASSPHRASE}" | tee transaction-data.txt
 ```
 
+> proposal: better management of wallets, as described here: https://docs.prylabs.network/docs/prysm-usage/wallet-keymanager
+
 * avviare il nodo validatore
 
 ```bash
@@ -128,7 +130,15 @@ systemctl enable docker-prysm-slasher.service
 
 reference: [Running a slasher](https://docs.prylabs.network/docs/prysm-usage/slasher)
 
-## 5. monitoraggio
+
+## 5. eth1 node ( TODO )
+
+[...]
+
+reference: [Running your own eth1 node](https://docs.prylabs.network/docs/prysm-usage/setup-eth1/#running-your-own-eth1-node)
+
+
+## 6. monitoraggio
 
 [...]
 
