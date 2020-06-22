@@ -18,15 +18,23 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
     - targets: ['localhost:9090']
+  
   - job_name: 'validator'
     static_configs:
       - targets: ['prysm-validator:8081']
+  
   - job_name: 'beacon node'
     static_configs:
       - targets: ['prysm-beacon:8080']
+  
+  - job_name: 'slasher'
+    static_configs:
+      - targets: ['prysm-slasher:8082']
+  
   - job_name: 'traefik'
     static_configs:
       - targets: ['traefik:8080']
+  
   - job_name: 'cryptowat'
     static_configs:
       - targets: ['cryptowat:9745']

@@ -1,7 +1,7 @@
 [Unit]
 Description=prometheus on docker
-After=docker.service docker-prysm-beacon.service docker-prysm-validator.service docker-traefik.service docker-cryptowat.service
-Requires=docker.service docker-prysm-beacon.service docker-prysm-validator.service docker-traefik.service docker-cryptowat.service
+After=docker.service docker-prysm-beacon.service docker-prysm-validator.service docker-prysm-slasher.service docker-traefik.service docker-cryptowat.service
+Requires=docker.service docker-prysm-beacon.service docker-prysm-validator.service docker-prysm-slasher.service docker-traefik.service docker-cryptowat.service
 
 [Service]
 Type=simple
@@ -24,6 +24,7 @@ ExecStart=/usr/bin/docker run --rm \
     --user $SYSTEM_USER \
     --link prysm-validator:prysm-validator \
     --link prysm-beacon:prysm-beacon \
+    --link prysm-slasher:prysm-slasher \
     --link traefik:traefik \
     --link cryptowat:cryptowat \
     -v /etc/localtime:/etc/localtime:ro \

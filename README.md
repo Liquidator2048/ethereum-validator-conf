@@ -6,7 +6,7 @@ Il motivo è che ho iniziato ad usare docker quando docker-compose ancora non er
 
 I motivi per cui non ho mai sostituito l'utilizzo degli unit di systemd con docker-compose sono:
 
-* gestione uniforme dei servizi installati su un server: tutti i servizi possono essere gestiti con systemctl sia che girano in un docker sia che siano installati
+* gestione uniforme dei servizi installati su un server: tutti i servizi possono essere gestiti con i comandi di *systemd*
 
 * i docker vengono aggiornati automaticamente ad ogni avvio
 
@@ -16,6 +16,11 @@ I motivi per cui non ho mai sostituito l'utilizzo degli unit di systemd con dock
 ## 0. docker
 
 * installare docker! :)
+
+```bash
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+```
 
 * copiare il file `etc/default/docker-services` -> `/etc/default/docker-services`
 
@@ -35,13 +40,15 @@ Verrà usata la directory `/srv/docker` per la persistenza dei dati dei docker
 * avviare il nodo
 
 ```bash
+# reload .service files
 systemctl daemon-reload
+# start
 systemctl start docker-prysm-beacon.service
+# start at boot
+systemctl enable docker-prysm-beacon.service
 ```
 
-reference:
-
-[Connecting to the testnet: running a beacon node](https://docs.prylabs.network/docs/install/lin/docker#connecting-to-the-testnet-running-a-beacon-node)
+reference: [Connecting to the testnet: running a beacon node](https://docs.prylabs.network/docs/install/lin/docker#connecting-to-the-testnet-running-a-beacon-node)
 
 
 ## 2. validator
@@ -61,17 +68,22 @@ reference: [Generating a validator keypair](https://docs.prylabs.network/docs/in
 source /etc/default/docker-prysm-validator
 
 docker run --rm -it \
-   -v /srv/docker/prysm-validator/data:/data \
+   -v /srv/docker/prysm-validator/secrets:/secrets \
    gcr.io/prysmaticlabs/prysm/validator:latest \
-   accounts create --keystore-path=/data --password="${KEYSTORE_PASSPHRASE}" | tee transaction-data.txt
+   accounts create --keystore-path=/secrets --password="${KEYSTORE_PASSPHRASE}" | tee transaction-data.txt
 ```
 
 * avviare il nodo validatore
 
 ```bash
+# reload .service files
 systemctl daemon-reload
+# start
 systemctl start docker-prysm-validator.service
+# start at boot
+systemctl enable docker-prysm-validator.service
 ```
+
 
 ## 3. attivare il validator
 
@@ -93,9 +105,31 @@ journalctl -fa -u docker-prysm-validator.service
 
 
 * Ottenere gli ETH sulla testnet ed inviarli allo smart contract allegando i dati presenti nel file `transaction-data.txt`. 
-  La procedura guidata è disponibile [qui](https://prylabs.net/participate).
+  La procedura guidata è disponibile visitando [https://prylabs.net/participate](https://prylabs.net/participate).
 
 
-## 4. monitoraggio
+## 4. Slasher
+
+* copiare i files:
+
+- `etc/systemd/service/docker-prysm-slasher.service` -> `/etc/systemd/service/docker-prysm-slasher.service`
 
 [...]
+
+
+```bash
+# reload .service files
+systemctl daemon-reload
+# start
+systemctl start docker-prysm-slasher.service
+# start at boot
+systemctl enable docker-prysm-slasher.service
+```
+
+reference: [Running a slasher](https://docs.prylabs.network/docs/prysm-usage/slasher)
+
+## 5. monitoraggio
+
+[...]
+
+reference: [Monitoring and alerts with Grafana](https://docs.prylabs.network/docs/prysm-usage/monitoring/grafana-dashboard)

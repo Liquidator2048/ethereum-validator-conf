@@ -33,7 +33,7 @@ ExecStart=/usr/bin/docker run --rm \
         --p2p-host-ip=$P2P_HOST_IP \
         --datadir=/data \
         --rpc-host=0.0.0.0 \
-        --monitoring-host=0.0.0.0
+        --monitoring-host=0.0.0.0 --monitoring-port 8080
 
 ExecStop=/usr/bin/docker stop $DOCKER_NAME
 KillMode=none

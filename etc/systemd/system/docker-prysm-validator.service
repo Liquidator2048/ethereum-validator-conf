@@ -21,16 +21,18 @@ ExecStart=/usr/bin/docker run --rm \
     --link prysm-beacon:prysm-beacon \
     -v /etc/localtime:/etc/localtime:ro \
     -v ${DOCKER_DATA_DIR}/prysm-validator/data:/data \
+    -v ${DOCKER_DATA_DIR}/prysm-validator/secrets:/secrets \
     --label traefik.enable=false \
     --label traefik.http.routers.prysm-validator.rule=Host(`prysm-validator.$TRAEFIK_PRIVATE_DOMAIN`) \
     --label traefik.http.routers.prysm-validator.entrypoints=$TRAEFIK_PRIVATE_ENTRYPOINTS \
     --label traefik.http.routers.prysm-validator.tls.certresolver=$TRAEFIK_PRIVATE_CERTRESOLVER \
     --label traefik.http.services.prysm-validator.loadbalancer.server.port=8081 \
     $DOCKER_IMAGE \
+        --datadir=/data \
         --beacon-rpc-provider=prysm-beacon:4000 \
         --keymanager=keystore \
-        --keymanageropts={"path":"/data","passphrase":"$KEYSTORE_PASSPHRASE"} \
-        --monitoring-host 0.0.0.0
+        --keymanageropts={"path":"/secrets","passphrase":"$KEYSTORE_PASSPHRASE"} \
+        --monitoring-host 0.0.0.0 --monitoring-port 8081 --enable-account-metrics
 
 ExecStop=/usr/bin/docker stop $DOCKER_NAME
 KillMode=none

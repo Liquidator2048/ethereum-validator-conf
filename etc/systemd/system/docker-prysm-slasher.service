@@ -1,0 +1,41 @@
+[Unit]
+Description=prysm-slasher on docker
+After=docker.service docker-prysm-beacon.service
+Requires=docker.service docker-prysm-beacon.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/docker-services
+
+Environment=DOCKER_IMAGE="gcr.io/prysmaticlabs/prysm/slasher:latest"
+Environment=DOCKER_NAME="prysm-slasher"
+
+SyslogIdentifier=docker-prysm-slasher
+
+ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+
+ExecStart=/usr/bin/docker run --rm \
+    --name "$DOCKER_NAME" \
+    --link prysm-beacon:prysm-beacon \
+    -v /etc/localtime:/etc/localtime:ro \
+    -v ${DOCKER_DATA_DIR}/prysm-slasher/data:/data \
+    $DOCKER_IMAGE \
+        --datadir=/data \
+        --beacon-rpc-provider=prysm-beacon:4000 \
+        --rpc-host=0.0.0.0 \
+        --monitoring-host=0.0.0.0 --monitoring-port=8082
+
+ExecStop=/usr/bin/docker stop $DOCKER_NAME
+KillMode=none
+
+KillSignal=SIGINT
+SuccessExitStatus=1
+
+TimeoutStartSec=0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Alias=prysm-slasher.service
+
