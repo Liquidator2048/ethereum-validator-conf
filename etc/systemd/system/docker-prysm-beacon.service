@@ -1,0 +1,50 @@
+[Unit]
+Description=prysm-beacon on docker
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/docker-services
+EnvironmentFile=-/etc/default/docker-prysm-beacon
+
+Environment=DOCKER_IMAGE="gcr.io/prysmaticlabs/prysm/beacon-chain:latest"
+Environment=DOCKER_NAME="prysm-beacon"
+
+SyslogIdentifier=docker-prysm-beacon
+
+ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+# get public ip from env or from v4.ident.me
+ExecStartPre=/usr/bin/bash -c "/usr/bin/systemctl set-environment P2P_HOST_IP=${P2P_HOST_IP:-$(/usr/bin/curl -s v4.ident.me)}"
+
+ExecStart=/usr/bin/docker run --rm \
+    --name "$DOCKER_NAME" \
+    -v /etc/localtime:/etc/localtime:ro \
+    -p 13000:13000 \
+    -p 12000:12000/udp \
+    -v ${DOCKER_DATA_DIR}/prysm-beacon/data:/data \
+    --label traefik.enable=false \
+    --label traefik.http.routers.prysm-beacon.rule=Host(`prysm-beacon.$TRAEFIK_PRIVATE_DOMAIN`) \
+    --label traefik.http.routers.prysm-beacon.entrypoints=$TRAEFIK_PRIVATE_ENTRYPOINTS \
+    --label traefik.http.routers.prysm-beacon.tls.certresolver=$TRAEFIK_PRIVATE_CERTRESOLVER \
+    --label traefik.http.services.prysm-beacon.loadbalancer.server.port=8080 \
+    $DOCKER_IMAGE \
+        --p2p-host-ip=$P2P_HOST_IP \
+        --datadir=/data \
+        --rpc-host=0.0.0.0 \
+        --monitoring-host=0.0.0.0
+
+ExecStop=/usr/bin/docker stop $DOCKER_NAME
+KillMode=none
+
+KillSignal=SIGINT
+SuccessExitStatus=1
+
+TimeoutStartSec=0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Alias=prysm-beacon.service
+

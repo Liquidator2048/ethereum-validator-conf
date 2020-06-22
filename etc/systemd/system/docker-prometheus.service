@@ -1,0 +1,53 @@
+[Unit]
+Description=prometheus on docker
+After=docker.service docker-prysm-beacon.service docker-prysm-validator.service docker-traefik.service docker-cryptowat.service
+Requires=docker.service docker-prysm-beacon.service docker-prysm-validator.service docker-traefik.service docker-cryptowat.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/docker-services
+EnvironmentFile=/etc/default/docker-prometheus
+
+Environment=DOCKER_IMAGE="prom/prometheus"
+Environment=DOCKER_NAME="prometheus"
+
+SyslogIdentifier=docker-prometheus
+
+ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+
+ExecStartPre=-/usr/bin/touch ${DOCKER_DATA_DIR}/prometheus/conf/prometheus.yml
+ExecStartPre=-/usr/bin/chown $SYSTEM_USER ${DOCKER_DATA_DIR}/prometheus/data
+
+ExecStart=/usr/bin/docker run --rm \
+    --name "$DOCKER_NAME" \
+    --user $SYSTEM_USER \
+    --link prysm-validator:prysm-validator \
+    --link prysm-beacon:prysm-beacon \
+    --link traefik:traefik \
+    --link cryptowat:cryptowat \
+    -v /etc/localtime:/etc/localtime:ro \
+    -v ${DOCKER_DATA_DIR}/prometheus/conf:/etc/prometheus \
+    -v ${DOCKER_DATA_DIR}/prometheus/data:/prometheus \
+    --label traefik.enable=true \
+    --label traefik.http.routers.prometheus.rule=Host(`prometheus.$TRAEFIK_PRIVATE_DOMAIN`) \
+    --label traefik.http.routers.prometheus.entrypoints=$TRAEFIK_PRIVATE_ENTRYPOINTS \
+    --label traefik.http.routers.prometheus.tls.certresolver=$TRAEFIK_PRIVATE_CERTRESOLVER \
+    --label traefik.http.services.prometheus.loadbalancer.server.port=9090 \
+    $DOCKER_IMAGE 
+    
+#--storage.tsdb.retention.time=31d
+
+ExecStop=/usr/bin/docker stop $DOCKER_NAME
+KillMode=none
+
+KillSignal=SIGINT
+SuccessExitStatus=1
+
+TimeoutStartSec=0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Alias=prometheus.service
+

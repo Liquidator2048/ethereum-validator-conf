@@ -1,0 +1,2 @@
+# if empty or not set public ip will be taken from v4.ident.me 
+P2P_HOST_IP=

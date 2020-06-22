@@ -1,0 +1,41 @@
+[entryPoints]
+  [entryPoints.private]
+    address = ":180"
+
+  [entryPoints.sslprivate]
+    address = ":1443"
+    [entryPoints.sslprivate.http.tls]
+      certResolver = "acme"
+
+[providers.docker]
+  watch = true
+  exposedByDefault = false
+
+
+[certificatesResolvers]
+  [certificatesResolvers.acme]
+    [certificatesResolvers.acme.acme]
+      storage = "/etc/traefik/acme/acme.json"
+      email = "acme@example.com"
+      [certificatesresolvers.acme.acme.dnschallenge]
+        provider = "cloudflare" 
+
+[providers]
+  [providers.file]
+    filename = "/etc/traefik/rules.toml"
+    watch = true
+
+[api]
+  insecure = true
+  dashboard = true
+  debug = true
+
+[global]
+  checkNewVersion = false
+  sendAnonymousUsage = false
+
+[log]
+  level = "INFO"
+
+[metrics]
+  [metrics.prometheus]

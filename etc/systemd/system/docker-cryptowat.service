@@ -1,0 +1,41 @@
+[Unit]
+Description=cryptowat on docker
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/docker-services
+Environment=DOCKER_IMAGE="nbarrientos/cryptowat_exporter"
+Environment=DOCKER_NAME="cryptowat"
+SyslogIdentifier=docker-cryptowat
+
+ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+
+ExecStart=/usr/bin/docker run --rm \
+    --name "$DOCKER_NAME" \
+    --user nobody \
+    -e "TZ=UTC" \
+    -e CRYPTOWAT_EXCHANGES=coinbase-pro,kraken \
+    -e CRYPTOWAT_PAIRS=etheur,ethusd,ethgbp,ethcad,ethchf,ethjpy,ethbtc \
+    --label traefik.enable=false \
+    --label traefik.http.routers.cryptowat.rule=Host(`cryptowat.$TRAEFIK_PRIVATE_DOMAIN`) \
+    --label traefik.http.routers.cryptowat.entrypoints=$TRAEFIK_PRIVATE_ENTRYPOINTS \
+    --label traefik.http.routers.cryptowat.tls.certresolver=$TRAEFIK_PRIVATE_CERTRESOLVER \
+    --label traefik.http.services.cryptowat.loadbalancer.server.port=9745 \
+    $DOCKER_IMAGE
+    
+ExecStop=/usr/bin/docker stop $DOCKER_NAME
+KillMode=none
+
+KillSignal=SIGINT
+SuccessExitStatus=1
+
+TimeoutStartSec=0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Alias=cryptowat.service
+

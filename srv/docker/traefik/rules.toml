@@ -1,0 +1,19 @@
+[http]
+
+  [http.middlewares]
+    [http.middlewares.redirect-to-https.redirectscheme]
+      scheme="https"
+
+  [http.routers]
+    [http.routers.redirs]
+      rule = "hostregexp(`{host:.+}`)"
+      entrypoints = ["web"]
+      middlewares = ["redirect-to-https"]
+      service = "DefaultHTTPSRedirect"
+
+
+  [http.services]
+    [http.services.DefaultHTTPSRedirect.loadBalancer]
+      [[http.services.DefaultHTTPSRedirect.loadBalancer.servers]]
+        url = "http://localhost/"
+

@@ -1,0 +1,49 @@
+[Unit]
+Description=traefik on docker
+After=docker.service
+Requires=docker.service
+Before=docker-system-prune.service
+
+[Service]
+Type=simple
+
+EnvironmentFile=/etc/default/docker-services
+EnvironmentFile=/etc/default/docker-traefik
+
+Environment=DOCKER_NAME=traefik
+Environment=DOCKER_IMAGE=traefik
+
+SyslogIdentifier=docker-traefik
+
+ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+
+ExecStart=/usr/bin/docker run --rm \
+    --name "$DOCKER_NAME" \
+    --memory=200m \
+    -p $PRIVATE_IP:80:180 \
+    -p $PRIVATE_IP:443:1443 \
+    -h traefik \
+    -v ${DOCKER_DATA_DIR}/traefik:/etc/traefik \
+    -v ${DOCKER_DATA_DIR}/traefik/acme/acme.json:/acme.json \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    --label traefik.enable=true \
+    --label traefik.http.routers.traefik-dashboard.rule=Host(`traefik.$TRAEFIK_PRIVATE_DOMAIN`) \
+    --label traefik.http.routers.traefik-dashboard.entrypoints=$TRAEFIK_PRIVATE_ENTRYPOINTS \
+    --label traefik.http.routers.traefik-dashboard.tls.certresolver=$TRAEFIK_PRIVATE_CERTRESOLVER \
+    --label traefik.http.services.traefik-dashboard.loadbalancer.server.port=8080 \
+    $DOCKER_IMAGE
+
+ExecStop=/usr/bin/docker stop $DOCKER_NAME
+KillMode=none
+
+KillSignal=SIGINT
+SuccessExitStatus=1
+
+TimeoutStartSec=0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Alias=traefik.service
+

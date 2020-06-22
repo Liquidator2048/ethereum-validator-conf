@@ -1,0 +1,58 @@
+[Unit]
+Description=grafana on docker
+After=docker.service docker-grafana-render.service
+Requires=docker.service docker-grafana-render.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/docker-services
+EnvironmentFile=/etc/default/docker-grafana
+
+Environment=DOCKER_IMAGE=grafana/grafana
+Environment=DOCKER_NAME=grafana
+SyslogIdentifier=docker-grafana
+
+ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+
+ExecStartPre=/bin/mkdir -p ${DOCKER_DATA_DIR}/grafana/conf
+ExecStartPre=/bin/mkdir -p ${DOCKER_DATA_DIR}/grafana/data
+ExecStartPre=/bin/mkdir -p ${DOCKER_DATA_DIR}/grafana/share
+ExecStartPre=/bin/mkdir -p ${DOCKER_DATA_DIR}/grafana/log
+ExecStartPre=/bin/mkdir -p ${DOCKER_DATA_DIR}/grafana/plugins
+ExecStartPre=/bin/chown $SYSTEM_USER ${DOCKER_DATA_DIR}/grafana/data ${DOCKER_DATA_DIR}/grafana/conf ${DOCKER_DATA_DIR}/grafana/share ${DOCKER_DATA_DIR}/grafana/log 
+
+ExecStart=/usr/bin/docker run --rm \
+    --name "$DOCKER_NAME" \
+    --memory=200m \
+    --user $SYSTEM_USER \
+    --link grafana-render:grafana-render \
+    -e "GF_INSTALL_PLUGINS=grafana-image-renderer" \
+    -e "GF_RENDERING_SERVER_URL=http://grafana-render:8081/render" \
+    -e "GF_RENDERING_CALLBACK_URL=https://grafana.$TRAEFIK_PRIVATE_DOMAIN" \
+    -e "GF_LOG_FILTERS=rendering:debug" \
+    -e "GF_SERVER_ROOT_URL=https://grafana.$TRAEFIK_PRIVATE_DOMAIN" \
+    -e "GF_SECURITY_ADMIN_PASSWORD=$ADMIN_PASSWORD" \
+    -e GF_AUTH_ANONYMOUS_ENABLED=false \
+    -v /etc/localtime:/etc/localtime:ro \
+    -v ${DOCKER_DATA_DIR}/grafana/data:/var/lib/grafana \
+    -v ${DOCKER_DATA_DIR}/grafana/log:/var/log/grafana \
+    -v ${DOCKER_DATA_DIR}/grafana/plugins:/var/lib/grafana/plugins \
+    --label traefik.enable=true \
+    --label traefik.http.routers.grafana.rule=Host(`grafana.$TRAEFIK_PRIVATE_DOMAIN`) \
+    --label traefik.http.routers.grafana.entrypoints=$TRAEFIK_PRIVATE_ENTRYPOINTS \
+    --label traefik.http.routers.grafana.tls.certresolver=$TRAEFIK_PRIVATE_CERTRESOLVER \
+    --label traefik.http.services.grafana.loadbalancer.server.port=3000 \
+    $DOCKER_IMAGE 
+
+ExecStop=/usr/bin/docker stop $DOCKER_NAME
+KillMode=none
+
+KillSignal=SIGINT
+SuccessExitStatus=1
+
+TimeoutStartSec=0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

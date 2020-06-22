@@ -1,0 +1,43 @@
+[Unit]
+Description=eth2stats on docker
+After=docker.service docker-prysm-beacon.service
+Requires=docker.service docker-prysm-beacon.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/docker-services
+EnvironmentFile=/etc/default/docker-eth2stats
+
+Environment=DOCKER_IMAGE="alethio/eth2stats-client:latest"
+Environment=DOCKER_NAME="eth2stats-client"
+
+SyslogIdentifier=docker-eth2stats
+
+ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+
+ExecStart=/usr/bin/docker run --rm \
+    --name "$DOCKER_NAME" \
+    -v ${DOCKER_DATA_DIR}/prysm-beacon/data:/data \
+    --link prysm-beacon:prysm-beacon \
+    $DOCKER_IMAGE run \
+        --eth2stats.node-name="$NODE_NAME" \
+        --data.folder="/data" \
+        --eth2stats.addr="grpc.onyx.eth2stats.io:443" --eth2stats.tls=true \
+        --beacon.type="prysm" \
+        --beacon.addr="prysm-beacon:4000" \
+        --beacon.metrics-addr="http://prysm-beacon:8080/metrics"
+
+ExecStop=/usr/bin/docker stop $DOCKER_NAME
+KillMode=none
+
+KillSignal=SIGINT
+SuccessExitStatus=1
+
+TimeoutStartSec=0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Alias=eth2stats.service
+
