@@ -1,0 +1,41 @@
+[Unit]
+Description=eth1 on docker
+After=docker.service docker-network@eth2.service
+Requires=docker.service docker-network@eth2.service
+
+[Service]
+Type=simple
+
+EnvironmentFile=/etc/default/docker-services
+
+Environment=DOCKER_IMAGE="ethereum/client-go"
+Environment=DOCKER_NAME="eth1"
+SyslogIdentifier=docker-eth1
+
+ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+
+ExecStart=/usr/bin/docker run --rm \
+    --name "$DOCKER_NAME" \
+    --network eth2 \
+    -p 30303:30303 \
+    -p 30303:30303/udp \
+    -v /etc/localtime:/etc/localtime:ro \
+    -v ${DOCKER_DATA_DIR}/eth1/data:/root \
+    $DOCKER_IMAGE \
+        --goerli \
+        --rpc --rpcaddr=0.0.0.0 --rpcport=8545 \
+        --ws --wsaddr=0.0.0.0 --wsport=8546
+
+ExecStop=/usr/bin/docker stop $DOCKER_NAME
+KillMode=none
+
+KillSignal=SIGINT
+SuccessExitStatus=1
+
+TimeoutStartSec=0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Alias=eth1.service

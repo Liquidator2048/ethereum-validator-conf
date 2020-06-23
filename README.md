@@ -28,6 +28,14 @@ per ora non è necessario modificarlo.
 
 Verrà usata la directory `/srv/docker` per la persistenza dei dati dei docker
 
+* controllare che esista una configurazione per la sincronizzazione dell'ora
+
+```bash
+edit /etc/systemd/timesyncd.conf
+systemctl enable systemd-timesyncd.service
+systemctl restart systemd-timesyncd.service
+```
+
 
 ## 1. beacon node 
 
@@ -143,3 +151,10 @@ reference: [Running your own eth1 node](https://docs.prylabs.network/docs/prysm-
 [...]
 
 reference: [Monitoring and alerts with Grafana](https://docs.prylabs.network/docs/prysm-usage/monitoring/grafana-dashboard)
+
+
+## 99. miglioramenti
+
+* gestione dei limiti delle risorse utilizzabili da ogni docker
+
+usare i cgroup per impostare limiti a cpu,ram ( e disco ? ) per ogni docker

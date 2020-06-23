@@ -1,7 +1,7 @@
 [Unit]
 Description=prysm-validator on docker
-After=docker.service docker-prysm-beacon.service
-Requires=docker.service docker-prysm-beacon.service
+After=docker.service docker-prysm-beacon.service docker-network@eth2.service
+Requires=docker.service docker-prysm-beacon.service docker-network@eth2.service
 
 [Service]
 Type=simple
@@ -18,21 +18,21 @@ ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \
-    --link prysm-beacon:prysm-beacon \
+    --network eth2 \
     -v /etc/localtime:/etc/localtime:ro \
     -v ${DOCKER_DATA_DIR}/prysm-validator/data:/data \
     -v ${DOCKER_DATA_DIR}/prysm-validator/secrets:/secrets \
     --label traefik.enable=false \
-    --label traefik.http.routers.prysm-validator.rule=Host(`prysm-validator.$TRAEFIK_PRIVATE_DOMAIN`) \
-    --label traefik.http.routers.prysm-validator.entrypoints=$TRAEFIK_PRIVATE_ENTRYPOINTS \
-    --label traefik.http.routers.prysm-validator.tls.certresolver=$TRAEFIK_PRIVATE_CERTRESOLVER \
+    --label traefik.http.routers.prysm-validator.rule=Host(`prysm-validator.${TRAEFIK_PRIVATE_DOMAIN}`) \
+    --label traefik.http.routers.prysm-validator.entrypoints=${TRAEFIK_PRIVATE_ENTRYPOINTS} \
+    --label traefik.http.routers.prysm-validator.tls.certresolver=${TRAEFIK_PRIVATE_CERTRESOLVER} \
     --label traefik.http.services.prysm-validator.loadbalancer.server.port=8081 \
     $DOCKER_IMAGE \
         --datadir=/data \
         --beacon-rpc-provider=prysm-beacon:4000 \
         --keymanager=keystore \
-        --keymanageropts={"path":"/secrets","passphrase":"$KEYSTORE_PASSPHRASE"} \
-        --monitoring-host 0.0.0.0 --monitoring-port 8081 --enable-account-metrics
+        --keymanageropts={"path":"/secrets","passphrase":"${KEYSTORE_PASSPHRASE}"} \
+        --monitoring-host 0.0.0.0 --monitoring-port 8081 
 
 ExecStop=/usr/bin/docker stop $DOCKER_NAME
 KillMode=none

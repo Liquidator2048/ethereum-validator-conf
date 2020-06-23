@@ -1,7 +1,7 @@
 [Unit]
 Description=prysm-slasher on docker
-After=docker.service docker-prysm-beacon.service
-Requires=docker.service docker-prysm-beacon.service
+After=docker.service docker-prysm-beacon.service docker-network@eth2.service
+Requires=docker.service docker-prysm-beacon.service docker-network@eth2.service
 
 [Service]
 Type=simple
@@ -17,7 +17,7 @@ ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \
-    --link prysm-beacon:prysm-beacon \
+    --network eth2 \
     -v /etc/localtime:/etc/localtime:ro \
     -v ${DOCKER_DATA_DIR}/prysm-slasher/data:/data \
     $DOCKER_IMAGE \

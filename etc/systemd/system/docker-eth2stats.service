@@ -1,7 +1,7 @@
 [Unit]
 Description=eth2stats on docker
-After=docker.service docker-prysm-beacon.service
-Requires=docker.service docker-prysm-beacon.service
+After=docker.service docker-prysm-beacon.service docker-network@eth2.service
+Requires=docker.service docker-prysm-beacon.service docker-network@eth2.service
 
 [Service]
 Type=simple
@@ -18,10 +18,11 @@ ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \
+    --network eth2 \
     -v ${DOCKER_DATA_DIR}/prysm-beacon/data:/data \
     --link prysm-beacon:prysm-beacon \
     $DOCKER_IMAGE run \
-        --eth2stats.node-name="$NODE_NAME" \
+        --eth2stats.node-name="${NODE_NAME}" \
         --data.folder="/data" \
         --eth2stats.addr="grpc.onyx.eth2stats.io:443" --eth2stats.tls=true \
         --beacon.type="prysm" \

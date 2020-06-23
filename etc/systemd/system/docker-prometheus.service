@@ -1,7 +1,7 @@
 [Unit]
 Description=prometheus on docker
-After=docker.service docker-prysm-beacon.service docker-prysm-validator.service docker-prysm-slasher.service docker-traefik.service docker-cryptowat.service
-Requires=docker.service docker-prysm-beacon.service docker-prysm-validator.service docker-prysm-slasher.service docker-traefik.service docker-cryptowat.service
+After=docker.service docker-network@eth2.service
+Requires=docker.service docker-network@eth2.service
 
 [Service]
 Type=simple
@@ -21,19 +21,15 @@ ExecStartPre=-/usr/bin/chown $SYSTEM_USER ${DOCKER_DATA_DIR}/prometheus/data
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \
+    --network eth2 \
     --user $SYSTEM_USER \
-    --link prysm-validator:prysm-validator \
-    --link prysm-beacon:prysm-beacon \
-    --link prysm-slasher:prysm-slasher \
-    --link traefik:traefik \
-    --link cryptowat:cryptowat \
     -v /etc/localtime:/etc/localtime:ro \
     -v ${DOCKER_DATA_DIR}/prometheus/conf:/etc/prometheus \
     -v ${DOCKER_DATA_DIR}/prometheus/data:/prometheus \
     --label traefik.enable=true \
-    --label traefik.http.routers.prometheus.rule=Host(`prometheus.$TRAEFIK_PRIVATE_DOMAIN`) \
-    --label traefik.http.routers.prometheus.entrypoints=$TRAEFIK_PRIVATE_ENTRYPOINTS \
-    --label traefik.http.routers.prometheus.tls.certresolver=$TRAEFIK_PRIVATE_CERTRESOLVER \
+    --label traefik.http.routers.prometheus.rule=Host(`prometheus.${TRAEFIK_PRIVATE_DOMAIN}`) \
+    --label traefik.http.routers.prometheus.entrypoints=${TRAEFIK_PRIVATE_ENTRYPOINTS} \
+    --label traefik.http.routers.prometheus.tls.certresolver=${TRAEFIK_PRIVATE_CERTRESOLVER} \
     --label traefik.http.services.prometheus.loadbalancer.server.port=9090 \
     $DOCKER_IMAGE 
     

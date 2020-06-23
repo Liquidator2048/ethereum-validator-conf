@@ -1,7 +1,7 @@
 [Unit]
 Description=grafana-render on docker
-After=docker.service
-Requires=docker.service
+After=docker.service docker-network@eth2.service
+Requires=docker.service docker-network@eth2.service
 
 [Service]
 Type=simple
@@ -17,11 +17,12 @@ ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \
+    --network eth2 \
     --memory=200m \
     --label traefik.enable=true \
-    --label traefik.http.routers.grafanarender.rule=Host(`grafanarender.$TRAEFIK_PRIVATE_DOMAIN`) \
-    --label traefik.http.routers.grafanarender.entrypoints=$TRAEFIK_PRIVATE_ENTRYPOINTS \
-    --label traefik.http.routers.grafanarender.tls.certresolver=$TRAEFIK_PRIVATE_CERTRESOLVER \
+    --label traefik.http.routers.grafanarender.rule=Host(`grafanarender.${TRAEFIK_PRIVATE_DOMAIN}`) \
+    --label traefik.http.routers.grafanarender.entrypoints=${TRAEFIK_PRIVATE_ENTRYPOINTS} \
+    --label traefik.http.routers.grafanarender.tls.certresolver=${TRAEFIK_PRIVATE_CERTRESOLVER} \
     --label traefik.http.services.grafanarender.loadbalancer.server.port=8081 \
     $DOCKER_IMAGE 
 

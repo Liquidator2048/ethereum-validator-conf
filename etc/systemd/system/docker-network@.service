@@ -1,0 +1,17 @@
+[Unit]
+Description=docker network %i
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+ExecStart=/usr/bin/bash -c "/usr/bin/docker network inspect %i || /usr/bin/docker network create %i"
+#ExecStart=/usr/bin/docker network create %i
+
+ExecStop=/usr/bin/docker network rm %i
+
+[Install]
+WantedBy=multi-user.target
+

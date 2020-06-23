@@ -1,7 +1,7 @@
 [Unit]
 Description=prysm-beacon on docker
-After=docker.service
-Requires=docker.service
+After=docker.service docker-eth1.service docker-network@eth2.service
+Requires=docker.service docker-eth1.service docker-network@eth2.service
 
 [Service]
 Type=simple
@@ -20,19 +20,22 @@ ExecStartPre=/usr/bin/bash -c "/usr/bin/systemctl set-environment P2P_HOST_IP=${
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \
+    --network eth2 \
     -v /etc/localtime:/etc/localtime:ro \
     -p 13000:13000 \
     -p 12000:12000/udp \
     -v ${DOCKER_DATA_DIR}/prysm-beacon/data:/data \
     --label traefik.enable=false \
-    --label traefik.http.routers.prysm-beacon.rule=Host(`prysm-beacon.$TRAEFIK_PRIVATE_DOMAIN`) \
-    --label traefik.http.routers.prysm-beacon.entrypoints=$TRAEFIK_PRIVATE_ENTRYPOINTS \
-    --label traefik.http.routers.prysm-beacon.tls.certresolver=$TRAEFIK_PRIVATE_CERTRESOLVER \
+    --label traefik.http.routers.prysm-beacon.rule=Host(`prysm-beacon.${TRAEFIK_PRIVATE_DOMAIN}`) \
+    --label traefik.http.routers.prysm-beacon.entrypoints=${TRAEFIK_PRIVATE_ENTRYPOINTS} \
+    --label traefik.http.routers.prysm-beacon.tls.certresolver=${TRAEFIK_PRIVATE_CERTRESOLVER} \
     --label traefik.http.services.prysm-beacon.loadbalancer.server.port=8080 \
     $DOCKER_IMAGE \
-        --p2p-host-ip=$P2P_HOST_IP \
+        --p2p-host-ip=${P2P_HOST_IP} \
         --datadir=/data \
         --rpc-host=0.0.0.0 \
+        --http-web3provider=http://eth1:8545 \
+        --web3provider=ws://eth1:8546 \
         --monitoring-host=0.0.0.0 --monitoring-port 8080
 
 ExecStop=/usr/bin/docker stop $DOCKER_NAME

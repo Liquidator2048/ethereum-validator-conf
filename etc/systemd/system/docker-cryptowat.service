@@ -1,7 +1,7 @@
 [Unit]
 Description=cryptowat on docker
-After=docker.service
-Requires=docker.service
+After=docker.service docker-network@eth2.service
+Requires=docker.service docker-network@eth2.service
 
 [Service]
 Type=simple
@@ -15,14 +15,15 @@ ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \
+    --network eth2 \
     --user nobody \
     -e "TZ=UTC" \
     -e CRYPTOWAT_EXCHANGES=coinbase-pro,kraken \
     -e CRYPTOWAT_PAIRS=etheur,ethusd,ethgbp,ethcad,ethchf,ethjpy,ethbtc \
     --label traefik.enable=false \
-    --label traefik.http.routers.cryptowat.rule=Host(`cryptowat.$TRAEFIK_PRIVATE_DOMAIN`) \
-    --label traefik.http.routers.cryptowat.entrypoints=$TRAEFIK_PRIVATE_ENTRYPOINTS \
-    --label traefik.http.routers.cryptowat.tls.certresolver=$TRAEFIK_PRIVATE_CERTRESOLVER \
+    --label traefik.http.routers.cryptowat.rule=Host(`cryptowat.${TRAEFIK_PRIVATE_DOMAIN}`) \
+    --label traefik.http.routers.cryptowat.entrypoints=${TRAEFIK_PRIVATE_ENTRYPOINTS} \
+    --label traefik.http.routers.cryptowat.tls.certresolver=${TRAEFIK_PRIVATE_CERTRESOLVER} \
     --label traefik.http.services.cryptowat.loadbalancer.server.port=9745 \
     $DOCKER_IMAGE
     
