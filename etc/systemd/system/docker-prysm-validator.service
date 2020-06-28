@@ -14,7 +14,7 @@ Environment=DOCKER_NAME="prysm-validator"
 SyslogIdentifier=docker-prysm-validator
 
 ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
-ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_NAME"
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \
@@ -31,7 +31,7 @@ ExecStart=/usr/bin/docker run --rm \
         --datadir=/data \
         --beacon-rpc-provider=prysm-beacon:4000 \
         --keymanager=keystore \
-        --keymanageropts={"path":"/secrets","passphrase":"${KEYSTORE_PASSPHRASE}"} \
+        --keymanageropts={\"path\":\"/secrets\",\"passphrase\":\"${KEYSTORE_PASSPHRASE}\"} \
         --monitoring-host 0.0.0.0 --monitoring-port 8081 
 
 ExecStop=/usr/bin/docker stop $DOCKER_NAME

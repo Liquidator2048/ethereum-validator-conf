@@ -7,7 +7,7 @@
   [http.routers]
     [http.routers.redirs]
       rule = "hostregexp(`{host:.+}`)"
-      entrypoints = ["web"]
+      entrypoints = ["private"]
       middlewares = ["redirect-to-https"]
       service = "DefaultHTTPSRedirect"
 

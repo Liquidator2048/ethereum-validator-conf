@@ -13,14 +13,14 @@ Environment=DOCKER_NAME=grafana
 SyslogIdentifier=docker-grafana
 
 ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
-ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_NAME"
 
 ExecStartPre=/bin/mkdir -p ${DOCKER_DATA_DIR}/grafana/conf
 ExecStartPre=/bin/mkdir -p ${DOCKER_DATA_DIR}/grafana/data
 ExecStartPre=/bin/mkdir -p ${DOCKER_DATA_DIR}/grafana/share
 ExecStartPre=/bin/mkdir -p ${DOCKER_DATA_DIR}/grafana/log
 ExecStartPre=/bin/mkdir -p ${DOCKER_DATA_DIR}/grafana/plugins
-ExecStartPre=/bin/chown $SYSTEM_USER ${DOCKER_DATA_DIR}/grafana/data ${DOCKER_DATA_DIR}/grafana/conf ${DOCKER_DATA_DIR}/grafana/share ${DOCKER_DATA_DIR}/grafana/log 
+ExecStartPre=/bin/chown $SYSTEM_USER ${DOCKER_DATA_DIR}/grafana/data ${DOCKER_DATA_DIR}/grafana/conf ${DOCKER_DATA_DIR}/grafana/share ${DOCKER_DATA_DIR}/grafana/log ${DOCKER_DATA_DIR}/grafana/plugins
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \

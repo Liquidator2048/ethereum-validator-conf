@@ -14,7 +14,7 @@ Environment=DOCKER_NAME="eth2stats-client"
 SyslogIdentifier=docker-eth2stats
 
 ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
-ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_NAME"
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \

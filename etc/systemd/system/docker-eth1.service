@@ -13,7 +13,7 @@ Environment=DOCKER_NAME="eth1"
 SyslogIdentifier=docker-eth1
 
 ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
-ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_NAME"
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \
@@ -24,7 +24,7 @@ ExecStart=/usr/bin/docker run --rm \
     -v ${DOCKER_DATA_DIR}/eth1/data:/root \
     $DOCKER_IMAGE \
         --goerli \
-        --rpc --rpcaddr=0.0.0.0 --rpcport=8545 \
+        --rpc --rpcaddr=0.0.0.0 --rpcport=8545 --rpcvhosts="*" \
         --ws --wsaddr=0.0.0.0 --wsport=8546
 
 ExecStop=/usr/bin/docker stop $DOCKER_NAME

@@ -81,6 +81,19 @@ docker run --rm -it \
    accounts create --keystore-path=/secrets --password="${KEYSTORE_PASSPHRASE}" | tee transaction-data.txt
 ```
 
+NOTA: per estrarre la chiave privata
+
+```bash
+source /etc/default/docker-prysm-validator
+
+docker run --rm -it \
+      -v /srv/docker/prysm-validator/secrets:/secrets \
+      gcr.io/prysmaticlabs/prysm/validator:latest \
+      accounts keys \
+      --keystore-path=/secrets \
+      --password="${KEYSTORE_PASSPHRASE}" | tee private-keys.txt
+```
+
 > proposal: better management of wallets, as described here: https://docs.prylabs.network/docs/prysm-usage/wallet-keymanager
 
 * avviare il nodo validatore

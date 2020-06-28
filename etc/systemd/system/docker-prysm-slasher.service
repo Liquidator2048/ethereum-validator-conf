@@ -13,7 +13,7 @@ Environment=DOCKER_NAME="prysm-slasher"
 SyslogIdentifier=docker-prysm-slasher
 
 ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
-ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_NAME"
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \

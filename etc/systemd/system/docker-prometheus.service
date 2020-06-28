@@ -14,7 +14,7 @@ Environment=DOCKER_NAME="prometheus"
 SyslogIdentifier=docker-prometheus
 
 ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
-ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_NAME"
 
 ExecStartPre=-/usr/bin/touch ${DOCKER_DATA_DIR}/prometheus/conf/prometheus.yml
 ExecStartPre=-/usr/bin/chown $SYSTEM_USER ${DOCKER_DATA_DIR}/prometheus/data
@@ -31,9 +31,12 @@ ExecStart=/usr/bin/docker run --rm \
     --label traefik.http.routers.prometheus.entrypoints=${TRAEFIK_PRIVATE_ENTRYPOINTS} \
     --label traefik.http.routers.prometheus.tls.certresolver=${TRAEFIK_PRIVATE_CERTRESOLVER} \
     --label traefik.http.services.prometheus.loadbalancer.server.port=9090 \
-    $DOCKER_IMAGE 
-    
-#--storage.tsdb.retention.time=31d
+    $DOCKER_IMAGE \
+        --config.file=/etc/prometheus/prometheus.yml \
+        --storage.tsdb.path=/prometheus \
+        --web.console.libraries=/usr/share/prometheus/console_libraries \
+        --web.console.templates=/usr/share/prometheus/consoles \
+        --storage.tsdb.retention.time=31d
 
 ExecStop=/usr/bin/docker stop $DOCKER_NAME
 KillMode=none

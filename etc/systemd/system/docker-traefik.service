@@ -16,14 +16,17 @@ Environment=DOCKER_IMAGE=traefik
 SyslogIdentifier=docker-traefik
 
 ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
-ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_NAME"
+ExecStartPre=-/usr/bin/mkdir -p ${DOCKER_DATA_DIR}/traefik/acme
+ExecStartPre=-/usr/bin/touch ${DOCKER_DATA_DIR}/traefik/acme/acme.json
+ExecStartPre=-/usr/bin/chmod 0600 ${DOCKER_DATA_DIR}/traefik/acme/acme.json
 
 ExecStart=/usr/bin/docker run --rm \
     --name "$DOCKER_NAME" \
     --network eth2 \
     --memory=200m \
-    -p $PRIVATE_IP:80:180 \
-    -p $PRIVATE_IP:443:1443 \
+    -p ${PRIVATE_IP}:80:180 \
+    -p ${PRIVATE_IP}:443:1443 \
     -v ${DOCKER_DATA_DIR}/traefik:/etc/traefik \
     -v ${DOCKER_DATA_DIR}/traefik/acme/acme.json:/acme.json \
     -v /var/run/docker.sock:/var/run/docker.sock \

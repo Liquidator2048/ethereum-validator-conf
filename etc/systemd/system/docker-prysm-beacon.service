@@ -14,7 +14,7 @@ Environment=DOCKER_NAME="prysm-beacon"
 SyslogIdentifier=docker-prysm-beacon
 
 ExecStartPre=/usr/bin/docker pull "$DOCKER_IMAGE"
-ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_IMAGE"
+ExecStartPre=-/usr/bin/docker rm -v -f "$DOCKER_NAME"
 # get public ip from env or from v4.ident.me
 ExecStartPre=/usr/bin/bash -c "/usr/bin/systemctl set-environment P2P_HOST_IP=${P2P_HOST_IP:-$(/usr/bin/curl -s v4.ident.me)}"
 
